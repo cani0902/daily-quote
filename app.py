@@ -79,7 +79,7 @@ if "ver" not in st.session_state:
 st.title("🌤 오늘의 한 마디")
 st.caption("매일 하나, 나에게 건네는 짧은 문장")
 
-if st.button("✨ 한 문장 뽑기", type="primary", use_container_width=True, key="main_btn"):
+if st.button("한 문장 뽑기", type="primary", use_container_width=True, key="main_btn"):
     if not st.session_state.deck:
         st.session_state.deck = list(range(len(QUOTES)))
         random.shuffle(st.session_state.deck)
@@ -105,6 +105,6 @@ if st.session_state.idx is not None:
     k = st.session_state.ver  # 매번 다른 key
     st.markdown(f"<div class='quote' id='quote_{k}'>“{q}”</div>", unsafe_allow_html=True)
 else:
-    st.markdown("<p class='hint'>버튼을 누르거나 스페이스바를 눌러 첫 문장을 뽑아보세요.</p>", unsafe_allow_html=True)
+    st.markdown("<p class='hint'>버튼을 눌러 첫 문장을 뽑아보세요.</p>", unsafe_allow_html=True)
 
 st.markdown("<div class='footer'>© 오늘의 한 마디</div>", unsafe_allow_html=True)

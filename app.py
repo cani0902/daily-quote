@@ -1,46 +1,34 @@
 # main.py
 import streamlit as st
 import random
-import hashlib
-from datetime import date
 
-# ---------------------------
-# 페이지 설정
-# ---------------------------
-st.set_page_config(page_title="오늘의 한 문장", page_icon="🌤", layout="centered")
+st.set_page_config(page_title="오늘의 한 문장 뽑기", page_icon="🌤", layout="centered")
 
+# ------- 스타일(선택) -------
 st.markdown("""
-    <style>
-    body {background: linear-gradient(120deg, #f8faff 0%, #faf7ff 100%);}
-    .quote {
-        font-size: 1.8rem;
-        font-weight: 500;
-        text-align: center;
-        color: #333;
-        margin-top: 2rem;
-        margin-bottom: 2rem;
-    }
-    .footer {
-        text-align: center;
-        font-size: 0.8rem;
-        color: #777;
-        margin-top: 3rem;
-    }
-    </style>
+<style>
+.quote {
+  font-size: 1.9rem;
+  font-weight: 600;
+  text-align: center;
+  color: #333;
+  margin: 1.5rem 0 0.5rem 0;
+}
+.subtle {
+  text-align:center;
+  color:#777;
+  font-size:.9rem;
+}
+.card {
+  background: #ffffffaa;
+  border-radius: 18px;
+  padding: 1.2rem 1.2rem;
+  box-shadow: 0 6px 24px rgba(0,0,0,.06);
+}
+</style>
 """, unsafe_allow_html=True)
 
-# ---------------------------
-# 오늘 날짜 기반 고정 랜덤 시드
-# ---------------------------
-def today_seed():
-    key = date.today().isoformat()
-    return int(hashlib.md5(key.encode()).hexdigest(), 16) % (2**31 - 1)
-
-rng = random.Random(today_seed())
-
-# ---------------------------
-# 오늘의 문장 데이터
-# ---------------------------
+# ------- 문장 데이터 -------
 QUOTES = [
     "작은 용기가 큰 변화를 만든다.",
     "오늘은 스스로를 믿어보자.",
@@ -95,21 +83,84 @@ QUOTES = [
     "오늘은 ‘괜찮다’는 말을 스스로에게 해주자."
 ]
 
-# ---------------------------
-# 오늘의 문장 선택
-# ---------------------------
-quote = rng.choice(QUOTES)
+# ------- 세션 스테이트 초기화 -------
+if "deck" not in st.session_state:
+    # deck: 아직 뽑지 않은 문장들의 인덱스
+    st.session_state.deck = list(range(len(QUOTES)))
+    random.shuffle(st.session_state.deck)
+if "history" not in st.session_state:
+    st.session_state.history = []   # 이미 뽑은 인덱스
+if "last_quote_idx" not in st.session_state:
+    st.session_state.last_quote_idx = None
+if "seed" not in st.session_state:
+    st.session_state.seed = None
 
-# ---------------------------
-# UI 표시
-# ---------------------------
-st.title("🌤 오늘의 한 문장")
-st.write("매일 하나, 나에게 건네는 짧은 문장")
+# ------- 헤더 -------
+st.title("🌤 오늘의 한 문장 — 뽑기")
+st.caption("버튼을 누를 때마다 새로운 문장을 뽑아요. 한 바퀴 다 보면 자동으로 다시 섞입니다.")
 
-st.markdown(f"<div class='quote'>“{quote}”</div>", unsafe_allow_html=True)
+# 재현 가능하게 하고 싶다면 시드 입력(선택)
+with st.expander("옵션: 셔플 시드 고정하기 (선택)"):
+    seed_input = st.text_input("시드(아무 문자열 가능):", value=st.session_state.seed or "")
+    col_opt1, col_opt2 = st.columns([1,1])
+    with col_opt1:
+        if st.button("현재 덱 재셔플", use_container_width=True):
+            rnd = random.Random(seed_input) if seed_input else random
+            st.session_state.seed = seed_input or None
+            st.session_state.deck = list(range(len(QUOTES)))
+            rnd.shuffle(st.session_state.deck)
+            st.session_state.history = []
+            st.session_state.last_quote_idx = None
+    with col_opt2:
+        if st.button("초기화(완전 리셋)", use_container_width=True):
+            st.session_state.clear()
+            st.rerun()
 
-st.divider()
-st.markdown(
-    "<div class='footer'>매일 0시에 새로운 문장이 찾아옵니다.<br>© 오늘의 한 문장</div>",
-    unsafe_allow_html=True
-)
+# ------- 본문: 뽑기 버튼 -------
+col1, col2, col3 = st.columns([1.2,1,1])
+with col1:
+    draw = st.button("✨ 한 문장 뽑기", type="primary", use_container_width=True)
+with col2:
+    reshuffle = st.button("🔄 다시 섞기", use_container_width=True)
+with col3:
+    show_history = st.toggle("히스토리 보기", value=False)
+
+if reshuffle:
+    rnd = random.Random(st.session_state.seed) if st.session_state.seed else random
+    st.session_state.deck = list(range(len(QUOTES)))
+    rnd.shuffle(st.session_state.deck)
+    st.session_state.history = []
+    st.session_state.last_quote_idx = None
+
+if draw:
+    if not st.session_state.deck:
+        # 모두 소진했으면 자동으로 새로 섞기
+        rnd = random.Random(st.session_state.seed) if st.session_state.seed else random
+        st.session_state.deck = list(range(len(QUOTES)))
+        rnd.shuffle(st.session_state.deck)
+        st.session_state.history = []
+    idx = st.session_state.deck.pop()  # 덱의 마지막에서 하나 뽑기
+    st.session_state.history.append(idx)
+    st.session_state.last_quote_idx = idx
+
+# ------- 출력 영역 -------
+st.markdown(" ")
+st.markdown('<div class="card">', unsafe_allow_html=True)
+
+if st.session_state.last_quote_idx is not None:
+    q = QUOTES[st.session_state.last_quote_idx]
+    st.markdown(f"<div class='quote'>“{q}”</div>", unsafe_allow_html=True)
+else:
+    st.markdown("<div class='quote' style='opacity:.6;'>버튼을 눌러 첫 문장을 뽑아보세요.</div>", unsafe_allow_html=True)
+
+remain = len(st.session_state.deck)
+total = len(QUOTES)
+st.markdown(f"<div class='subtle'>남은 문장: <b>{remain}</b> / 전체 {total}</div>", unsafe_allow_html=True)
+
+st.markdown('</div>', unsafe_allow_html=True)
+
+# ------- 히스토리(선택) -------
+if show_history and st.session_state.history:
+    st.write("#### 지금까지 뽑은 문장")
+    for i, idx in enumerate(reversed(st.session_state.history), 1):
+        st.write(f"{i}. {QUOTES[idx]}")

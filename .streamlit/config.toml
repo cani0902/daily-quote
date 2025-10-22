@@ -1,0 +1,7 @@
+[theme]
+base = "light"
+primaryColor = "#4fA6E5"   # 은은한 하늘빛 포인트
+backgroundColor = "#f8faff" # 부드러운 배경
+secondaryBackgroundColor = "#ffffff"
+textColor = "#333333"
+font = "sans serif"

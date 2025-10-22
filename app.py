@@ -92,7 +92,7 @@ if "last_idx" not in st.session_state:
 
 # --------- UI ---------
 st.title("🌤 오늘의 한 마디")
-st.caption("버튼을 누를 때마다 한 문장을 뽑아요. 모두 보면 알아서 다시 섞입니다.")
+st.caption("매일 하나, 나에게 건네는 짧은 문장")
 
 # 뽑기 버튼(유일한 인터랙션)
 if st.button("✨ 한 문장 뽑기", type="primary", use_container_width=True):

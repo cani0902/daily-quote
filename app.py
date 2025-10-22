@@ -1,7 +1,5 @@
-# app.py
 import streamlit as st
 import random
-import time
 
 st.set_page_config(page_title="오늘의 한 마디", page_icon="🌤", layout="centered")
 
@@ -20,7 +18,7 @@ h1{letter-spacing:-0.4px;margin-bottom:.15rem;}
 .stButton > button:hover{ transform: translateY(-1px); box-shadow: 0 14px 34px rgba(79,166,229,.30); }
 .stButton > button:active{ transform: translateY(0); box-shadow: 0 6px 18px rgba(79,166,229,.18); }
 
-/* 애니메이션 효과: fade + blur + gradient 글자색 */
+/* fade + blur + gradient 애니메이션 */
 @keyframes fadeUp {
   0% { opacity: 0; transform: translateY(10px); filter: blur(6px); }
   100% { opacity: 1; transform: translateY(0); filter: blur(0); }
@@ -40,7 +38,7 @@ h1{letter-spacing:-0.4px;margin-bottom:.15rem;}
   background-size: 200% 200%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: fadeUp 0.8s ease, gradientShift 5s ease infinite;
+  animation: fadeUp 0.8s ease, gradientShift 6s ease infinite;
 }
 .hint{ text-align:center; color:#76839b; font-size:.98rem; margin-top:.6rem;}
 .footer{ text-align:center; color:#8a8fa0; font-size:.9rem; margin-top:20px;}
@@ -74,27 +72,27 @@ if "deck" not in st.session_state:
     random.shuffle(st.session_state.deck)
 if "last_i" not in st.session_state:
     st.session_state.last_i = None
-if "quote_version" not in st.session_state:
-    st.session_state.quote_version = 0  # 애니메이션 새로 트리거용
+if "anim_key" not in st.session_state:
+    st.session_state.anim_key = 0  # 매번 애니메이션 재실행용
 
 # -------------------- UI --------------------
 st.title("🌤 오늘의 한 마디")
 st.caption("매일 하나, 나에게 건네는 짧은 문장")
 
 # 문장 뽑기 버튼
-if st.button("✨ 한 문장 뽑기", type="primary", use_container_width=True):
+if st.button("✨ 한 문장 뽑기", type="primary", use_container_width=True, key="mainbtn"):
     if not st.session_state.deck:
         st.session_state.deck = list(range(len(QUOTES)))
         random.shuffle(st.session_state.deck)
     st.session_state.last_i = st.session_state.deck.pop()
-    st.session_state.quote_version += 1  # 매번 업데이트 → 애니메이션 재실행
+    st.session_state.anim_key += 1  # key 변경 → DOM 재생성 → 애니메이션 매번 실행
 
-# 스페이스바로 뽑기
+# 스페이스바로 뽑기 (현재 문서 기준으로 동작)
 st.markdown("""
 <script>
-document.addEventListener('keydown', (e)=>{
+document.addEventListener('keydown', function(e){
   if(e.code === 'Space' && !e.repeat){
-    const btn = window.parent.document.querySelector('button[kind="primary"]');
+    const btn = document.querySelector('button[kind="primary"]');
     if(btn){ btn.click(); }
     e.preventDefault();
   }
@@ -104,10 +102,9 @@ document.addEventListener('keydown', (e)=>{
 
 # -------------------- QUOTE 출력 --------------------
 if st.session_state.last_i is not None:
-    # version param을 HTML 클래스에 넣어 매번 다른 요소로 렌더링 → 애니메이션 재실행
-    version = st.session_state.quote_version
     quote_text = QUOTES[st.session_state.last_i]
-    st.markdown(f"<div class='quote v{version}'>“{quote_text}”</div>", unsafe_allow_html=True)
+    key = st.session_state.anim_key
+    st.markdown(f"<div class='quote' id='quote_{key}'>“{quote_text}”</div>", unsafe_allow_html=True)
 else:
     st.markdown("<p class='hint'>버튼을 눌러 첫 문장을 뽑아보세요. (스페이스바도 가능)</p>", unsafe_allow_html=True)
 

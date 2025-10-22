@@ -18,16 +18,21 @@ h1{letter-spacing:-0.4px;margin-bottom:.15rem;}
 }
 .stButton > button:hover{ transform: translateY(-1px); box-shadow: 0 14px 34px rgba(79,166,229,.30); }
 .stButton > button:active{ transform: translateY(0); box-shadow: 0 6px 18px rgba(79,166,229,.18); }
-.quote{
+
+/* 문장 애니메이션 (페이드 + 슬라이드 업) */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.quote {
   margin: 18px 0 8px 0;
   font-size: clamp(28px, 5.4vw, 44px);
   line-height: 1.28;
   font-weight: 800;
   color: #1f2937;
   text-align: center;
-  animation: fadeIn .35s ease;
+  animation: fadeUp 0.5s ease forwards;
 }
-@keyframes fadeIn { from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none} }
 .hint{ text-align:center; color:#76839b; font-size:.98rem; margin-top:.6rem;}
 .footer{ text-align:center; color:#8a8fa0; font-size:.9rem; margin-top:20px;}
 </style>
@@ -49,47 +54,4 @@ QUOTES = [
     "나에게 필요한 건 완벽이 아니라 꾸준함이다.","비 오는 날도 결국은 그친다.","누군가의 하루를 밝히는 빛이 되어보자.",
     "오늘은 어제의 나를 이길 기회다.","실패는 나쁜 게 아니라 과정일 뿐이다.","작은 시도라도 오늘 해보자.",
     "세상은 생각보다 너그럽다.","아무 일도 하지 않는 것도 때로는 용기다.","하루를 웃음으로 시작해보자.",
-    "기대하지 않아도 좋은 일이 찾아온다.","오늘은 하늘 한번 올려다보기.","끝이 아니라 새로운 시작이다.",
-    "오늘 하루를 기록해보자.","작은 선물 같은 하루가 될지도 모른다.",
-    "당신의 노력은 반드시 빛을 볼 거야.","힘내지 않아도 괜찮아, 그래도 해낼 거야.","오늘은 ‘괜찮다’는 말을 스스로에게 해주자."
-]
-
-# -------------------- STATE --------------------
-if "deck" not in st.session_state:
-    st.session_state.deck = list(range(len(QUOTES)))
-    random.shuffle(st.session_state.deck)
-if "last_i" not in st.session_state:
-    st.session_state.last_i = None
-
-# -------------------- UI --------------------
-st.title("🌤 오늘의 한 마디")
-st.caption("매일 하나, 나에게 건네는 짧은 문장")
-
-# 메인 버튼
-if st.button("✨ 한 문장 뽑기", type="primary", use_container_width=True):
-    if not st.session_state.deck:
-        st.session_state.deck = list(range(len(QUOTES)))
-        random.shuffle(st.session_state.deck)
-    st.session_state.last_i = st.session_state.deck.pop()
-
-# 스페이스바로도 뽑기 (화면은 그대로, 사용성만 향상)
-st.markdown("""
-<script>
-document.addEventListener('keydown', (e)=>{
-  if(e.code === 'Space' && !e.repeat){
-    const btn = window.parent.document.querySelector('button[kind="primary"]');
-    if(btn){ btn.click(); }
-    e.preventDefault();
-  }
-});
-</script>
-""", unsafe_allow_html=True)
-
-# 문장 출력 (흰 카드 없음)
-if st.session_state.last_i is not None:
-    st.markdown(f"<div class='quote'>“{QUOTES[st.session_state.last_i]}”</div>", unsafe_allow_html=True)
-else:
-    st.markdown("<p class='hint'>버튼을 눌러 첫 문장을 뽑아보세요. (스페이스바도 가능)</p>", unsafe_allow_html=True)
-
-st.markdown("<div class='footer'>© 오늘의 한 마디</div>", unsafe_allow_html=True)
-
+    "기대하지 않아도 좋은 일이 찾아온다.","오늘은 하늘 한번 올려다보기.","끝이 아니라 새로운 시작

@@ -105,6 +105,6 @@ if st.session_state.idx is not None:
     k = st.session_state.ver  # 매번 다른 key
     st.markdown(f"<div class='quote' id='quote_{k}'>“{q}”</div>", unsafe_allow_html=True)
 else:
-    st.markdown("<p class='hint'>버튼을 눌러 첫 문장을 뽑아보세요.</p>", unsafe_allow_html=True)
+    st.markdown("<p class='hint'>버튼을 눌러 오늘의 한 문장을 뽑아보세요.</p>", unsafe_allow_html=True)
 
-st.markdown("<div class='footer'>© 오늘의 한 마디</div>", unsafe_allow_html=True)
+st.markdown("<div class='footer'>by 10430 최민성</div>", unsafe_allow_html=True)

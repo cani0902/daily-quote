@@ -3,7 +3,7 @@ import random
 
 st.set_page_config(page_title="오늘의 한 마디", page_icon="🌤", layout="centered")
 
-# -------------------- STYLE --------------------
+# ---------- STYLE ----------
 st.markdown("""
 <style>
 .block-container{max-width:760px;padding-top:2.2rem;padding-bottom:2.2rem;}
@@ -13,43 +13,39 @@ body{
 h1{letter-spacing:-0.4px;margin-bottom:.15rem;}
 .stButton > button{
   width:100%;height:56px;border:0;border-radius:14px;font-weight:800;font-size:1.05rem;
-  box-shadow: 0 10px 28px rgba(79,166,229,.22); transition: transform .05s, box-shadow .2s;
+  box-shadow: 0 10px 28px rgba(79,166,229,.22);transition:transform .05s,box-shadow .2s;
 }
-.stButton > button:hover{ transform: translateY(-1px); box-shadow: 0 14px 34px rgba(79,166,229,.30); }
-.stButton > button:active{ transform: translateY(0); box-shadow: 0 6px 18px rgba(79,166,229,.18); }
+.stButton > button:hover{transform:translateY(-1px);box-shadow:0 14px 34px rgba(79,166,229,.3);}
+.stButton > button:active{transform:translateY(0);box-shadow:0 6px 18px rgba(79,166,229,.18);}
 
-/* 애니메이션 키프레임 */
+/* fade + blur + gradient */
 @keyframes fadeUp {
-  0% { opacity: 0; transform: translateY(10px); filter: blur(6px); }
-  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+  0% {opacity:0;transform:translateY(10px);filter:blur(6px);}
+  100% {opacity:1;transform:translateY(0);filter:blur(0);}
 }
 @keyframes gradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {background-position:0% 50%;}
+  50% {background-position:100% 50%;}
+  100% {background-position:0% 50%;}
 }
-
-/* 문장 타이포(애니메이션은 JS로 매번 재적용) */
-.quote {
-  margin: 18px 0 8px 0;
-  font-size: clamp(28px, 5.4vw, 44px);
-  line-height: 1.28;
-  font-weight: 800;
-  text-align: center;
-  background: linear-gradient(90deg, #4fa6e5, #a47ee8, #ff9fc2);
-  background-size: 200% 200%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.quote{
+  margin:18px 0 8px 0;
+  font-size:clamp(28px,5.4vw,44px);
+  line-height:1.28;
+  font-weight:800;
+  text-align:center;
+  background:linear-gradient(90deg,#4fa6e5,#a47ee8,#ff9fc2);
+  background-size:200% 200%;
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  animation:fadeUp .7s ease forwards,gradientShift 6s ease infinite;
 }
-.hint{ text-align:center; color:#76839b; font-size:.98rem; margin-top:.6rem;}
-.footer{ text-align:center; color:#8a8fa0; font-size:.9rem; margin-top:20px;}
-
-/* 키보드 포커스용 숨김 앵커 */
-#kb-focus-anchor{position:absolute;left:-9999px;top:-9999px;outline:none;}
+.hint{text-align:center;color:#76839b;font-size:.98rem;margin-top:.6rem;}
+.footer{text-align:center;color:#8a8fa0;font-size:.9rem;margin-top:20px;}
 </style>
 """, unsafe_allow_html=True)
 
-# -------------------- DATA --------------------
+# ---------- DATA ----------
 QUOTES = [
     "작은 용기가 큰 변화를 만든다.","오늘은 스스로를 믿어보자.","길을 몰라도 걷다 보면 보인다.",
     "너무 멀리 보지 말고, 바로 앞을 보자.","한 걸음이라도 나아간다면 충분하다.","누군가의 말보다 내 속삭임에 귀 기울이자.",
@@ -70,72 +66,45 @@ QUOTES = [
     "당신의 노력은 반드시 빛을 볼 거야.","힘내지 않아도 괜찮아, 그래도 해낼 거야.","오늘은 ‘괜찮다’는 말을 스스로에게 해주자."
 ]
 
-# -------------------- STATE --------------------
+# ---------- STATE ----------
 if "deck" not in st.session_state:
     st.session_state.deck = list(range(len(QUOTES)))
     random.shuffle(st.session_state.deck)
 if "idx" not in st.session_state:
     st.session_state.idx = None
-if "render_count" not in st.session_state:
-    st.session_state.render_count = 0  # 렌더 번호(스크립트가 매번 다시 붙도록)
+if "ver" not in st.session_state:
+    st.session_state.ver = 0  # 애니메이션 트리거용
 
-# -------------------- UI --------------------
+# ---------- UI ----------
 st.title("🌤 오늘의 한 마디")
 st.caption("매일 하나, 나에게 건네는 짧은 문장")
 
-# 메인 버튼
-if st.button("✨ 한 문장 뽑기", type="primary", use_container_width=True):
+if st.button("✨ 한 문장 뽑기", type="primary", use_container_width=True, key="main_btn"):
     if not st.session_state.deck:
         st.session_state.deck = list(range(len(QUOTES)))
         random.shuffle(st.session_state.deck)
     st.session_state.idx = st.session_state.deck.pop()
+    st.session_state.ver += 1  # 매 클릭마다 key 변경 → 새 DOM → 애니메이션 재실행
 
-# 문장 출력
-if st.session_state.idx is not None:
-    q = QUOTES[st.session_state.idx]
-    # 고유 id로 렌더
-    st.session_state.render_count += 1
-    q_id = f"quote-{st.session_state.render_count}"
-    st.markdown(f"<div id='{q_id}' class='quote'>“{q}”</div>", unsafe_allow_html=True)
-else:
-    st.markdown("<p class='hint'>버튼을 누르거나 스페이스바를 눌러 첫 문장을 뽑아보세요.</p>", unsafe_allow_html=True)
-
-# 키 이벤트 & 애니메이션 재적용 스크립트
-st.markdown(f"""
-<div id="kb-focus-anchor" tabindex="0"></div>
+# 스페이스바로 뽑기 (현재 frame 기준으로 안정 동작)
+st.markdown("""
 <script>
-(function(){{
-  // 1) 처음 로드/매 렌더마다 포커스 확보: iframe 내부로 키 입력 유도
-  const anchor = document.getElementById('kb-focus-anchor');
-  if (anchor) {{
-    anchor.focus();
-    // 포커스가 외부로 나갔을 경우를 대비, 클릭 시에도 다시 포커스 시도
-    document.addEventListener('click', ()=>anchor.focus(), {{once:false}});
-  }}
-
-  // 2) 스페이스바로 항상 동작 (버튼 포커스와 무관)
-  function clickDraw(){{
-    const btns = Array.from(document.querySelectorAll('button'));
-    const target = btns.find(b => (b.innerText||"").includes("한 문장 뽑기"));
-    if (target) target.click();
-  }}
-  window.onkeydown = function(e){{
-    if(e.code === 'Space' && !e.repeat){{ e.preventDefault(); clickDraw(); }}
-  }};
-
-  // 3) 애니메이션 매번 재실행: 새로 렌더된 quote 엘리먼트 id로 타깃팅
-  const q = document.getElementById("{q_id if st.session_state.idx is not None else ''}");
-  if (q) {{
-    // gradient는 계속, fadeUp만 재시작: animation 재적용 트릭
-    q.style.animation = 'none';
-    // 강제 reflow
-    void q.offsetWidth;
-    // 재적용
-    q.style.animation = 'fadeUp 0.7s ease forwards, gradientShift 6s ease infinite';
-  }}
-}})();
+window.addEventListener('keydown', function(e){
+  if(e.code === 'Space' && !e.repeat){
+    const btn=document.querySelector('button[kind="primary"]');
+    if(btn){btn.click();}
+    e.preventDefault();
+  }
+});
 </script>
 """, unsafe_allow_html=True)
 
-st.markdown("<div class='footer'>© 오늘의 한 마디</div>", unsafe_allow_html=True)
+# ---------- QUOTE 출력 ----------
+if st.session_state.idx is not None:
+    q = QUOTES[st.session_state.idx]
+    k = st.session_state.ver  # 매번 다른 key
+    st.markdown(f"<div class='quote' id='quote_{k}'>“{q}”</div>", unsafe_allow_html=True)
+else:
+    st.markdown("<p class='hint'>버튼을 누르거나 스페이스바를 눌러 첫 문장을 뽑아보세요.</p>", unsafe_allow_html=True)
 
+st.markdown("<div class='footer'>© 오늘의 한 마디</div>", unsafe_allow_html=True)

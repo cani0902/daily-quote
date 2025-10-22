@@ -1,72 +1,47 @@
-# main.py
+# app.py
 import streamlit as st
 import random
 
 st.set_page_config(page_title="오늘의 한 마디", page_icon="🌤", layout="centered")
 
-# ---------- GLOBAL STYLE ----------
+# -------------------- GLOBAL STYLE --------------------
 st.markdown("""
 <style>
-/* 전체 레이아웃 폭 & 타이포 */
-.block-container{max-width:720px;padding-top:2.2rem;padding-bottom:2rem;}
-h1{letter-spacing:-0.5px;margin-bottom:.2rem;}
-/* 부드러운 배경 */
+/* 레이아웃 폭 & 여백 */
+.block-container{max-width:760px;padding-top:2.2rem;padding-bottom:2.2rem;}
+/* 배경: 은은한 그라데이션 */
 body{
-  background: radial-gradient(1200px 600px at 10% 10%, #f6fbff 0%, #f4f2ff 42%, #f8f9fb 100%);
+  background: radial-gradient(1200px 800px at 10% 5%, #f7fbff 0%, #f5f4ff 45%, #f8fafc 100%);
 }
-/* 버튼 스타일 */
+/* 타이틀 & 캡션 */
+h1{letter-spacing:-0.5px;margin-bottom:.25rem;}
+header + div [data-testid="stCaptionContainer"]{margin-top:.05rem;}
+/* 버튼: 테마 primaryColor를 이용 */
 .stButton > button{
-  width:100%;
-  height:48px;
-  border-radius:12px;
-  border:0;
-  font-weight:700;
-  box-shadow: 0 6px 20px rgba(79,166,229,.25);
-  transition: transform .04s ease, box-shadow .2s ease, background .2s ease;
+  width:100%;height:54px;border:0;border-radius:14px;font-weight:800;font-size:1.05rem;
+  transition: transform .05s ease, box-shadow .2s ease, background .2s ease, opacity .2s ease;
+  box-shadow: 0 10px 28px rgba(79,166,229,.22);
 }
-.stButton > button:hover{
-  transform: translateY(-1px);
-  box-shadow: 0 10px 28px rgba(79,166,229,.35);
-}
-.stButton > button:active{
-  transform: translateY(0);
-  box-shadow: 0 4px 14px rgba(79,166,229,.2);
-}
-/* 카드(문장) – 글래스 효과 */
+.stButton > button:hover{ transform: translateY(-1px); box-shadow: 0 14px 34px rgba(79,166,229,.30); }
+.stButton > button:active{ transform: translateY(0); box-shadow: 0 6px 18px rgba(79,166,229,.18); }
+/* 카드: 글래스 + 살짝 둥근 그림자 */
 .card{
-  margin-top:16px;
-  background: rgba(255,255,255,.78);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  border:1px solid rgba(255,255,255,.6);
-  border-radius:18px;
-  padding:22px 22px;
-  box-shadow: 0 12px 34px rgba(18, 38, 63, .08);
-  animation: fadeIn .35s ease;
+  margin-top:18px;background:rgba(255,255,255,.82);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  border:1px solid rgba(255,255,255,.65);border-radius:22px;padding:28px 28px;
+  box-shadow: 0 18px 42px rgba(17, 37, 64, .10); animation:fadeIn .35s ease;
 }
-@keyframes fadeIn{ from {opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;} }
-
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 /* 문장 타이포 */
-.quote{
-  font-size:1.9rem;
-  line-height:1.35;
-  font-weight:700;
-  color:#222;
-  text-align:center;
-  margin: 0;
-}
-.hint{
-  text-align:center; color:#7a7a7a; font-size:.95rem; margin-top:.55rem;
-}
-
-/* 얇은 구분선 여백 축소 */
-hr{margin:18px 0;}
-/* footer */
-.footer{ text-align:center;color:#8b8b8b;font-size:.9rem;margin-top:12px;}
+.quote{font-size:2.05rem;line-height:1.33;font-weight:800;color:#1f2937;text-align:center;margin:0;}
+.hint{ text-align:center;color:#76839b;font-size:.98rem;margin-top:.6rem;}
+/* 푸터 */
+.footer{ text-align:center;color:#8a8fa0;font-size:.9rem;margin-top:16px;}
+/* 링크 스타일(향후 공유/크레딧 대비) */
+a{ text-decoration:none }
 </style>
 """, unsafe_allow_html=True)
 
-# ---------- DATA ----------
+# -------------------- DATA --------------------
 QUOTES = [
     "작은 용기가 큰 변화를 만든다.","오늘은 스스로를 믿어보자.","길을 몰라도 걷다 보면 보인다.",
     "너무 멀리 보지 말고, 바로 앞을 보자.","한 걸음이라도 나아간다면 충분하다.","누군가의 말보다 내 속삭임에 귀 기울이자.",
@@ -88,29 +63,31 @@ QUOTES = [
     "당신의 노력은 반드시 빛을 볼 거야.","힘내지 않아도 괜찮아, 그래도 해낼 거야.","오늘은 ‘괜찮다’는 말을 스스로에게 해주자."
 ]
 
-# ---------- STATE ----------
+# -------------------- STATE --------------------
 if "deck" not in st.session_state:
     st.session_state.deck = list(range(len(QUOTES)))
     random.shuffle(st.session_state.deck)
-if "last_idx" not in st.session_state:
-    st.session_state.last_idx = None
+if "idx" not in st.session_state:
+    st.session_state.idx = None
 
-# ---------- UI ----------
+# -------------------- UI --------------------
 st.title("🌤 오늘의 한 마디")
 st.caption("매일 하나, 나에게 건네는 짧은 문장")
 
-# 유일한 인터랙션: 뽑기
-if st.button("✨ 한 문장 뽑기", type="primary", use_container_width=True):
+# 유일한 인터랙션
+if st.button("한 문장 뽑기", type="primary", use_container_width=True):
     if not st.session_state.deck:
         st.session_state.deck = list(range(len(QUOTES)))
         random.shuffle(st.session_state.deck)
-    st.session_state.last_idx = st.session_state.deck.pop()
+    st.session_state.idx = st.session_state.deck.pop()
+    st.balloons()  # 소소한 피드백
 
-# 문장 카드 (비어있는 카드는 렌더링하지 않음 → 버튼 아래 흰칸 제거)
-if st.session_state.last_idx is not None:
-    q = QUOTES[st.session_state.last_idx]
+# 문장 카드: 뽑기 전에는 힌트만 -> 버튼 아래 공백 X
+if st.session_state.idx is not None:
+    q = QUOTES[st.session_state.idx]
     st.markdown(f"<div class='card'><p class='quote'>“{q}”</p></div>", unsafe_allow_html=True)
 else:
     st.markdown("<p class='hint'>버튼을 눌러 첫 문장을 뽑아보세요.</p>", unsafe_allow_html=True)
 
 st.markdown("<div class='footer'>© 오늘의 한 마디</div>", unsafe_allow_html=True)
+

@@ -1,7 +1,7 @@
 [theme]
 base = "light"
-primaryColor = "#4fA6E5"   # 은은한 하늘빛 포인트
-backgroundColor = "#f8faff" # 부드러운 배경
-secondaryBackgroundColor = "#ffffff"
-textColor = "#333333"
+primaryColor = "#4FA6E5"          # 버튼/포커스 포인트
+backgroundColor = "#F7FAFF"       # 아주 연한 블루 톤(배경 그라데이션과 조화)
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#1F2937"             # 문장 가독성 높은 다크 그레이
 font = "sans serif"
